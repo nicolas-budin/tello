@@ -8,8 +8,6 @@ import cv2
 
 # Creating MainGame class
 class MainGame(arcade.Window):
-
-
     HANDLER = logging.StreamHandler()
     FORMATTER = logging.Formatter('[%(levelname)s] %(filename)s - %(lineno)d - %(message)s')
     HANDLER.setFormatter(FORMATTER)
@@ -21,8 +19,8 @@ class MainGame(arcade.Window):
     def __init__(self):
         super().__init__(600, 600, title="Drone Movement")
 
-        self.isCamOn = False;
-        self.isDroneOn = False;
+        self.isCamOn = False
+        self.isDroneOn = False
 
         # Initializing the initial x and y coordinated
         self.x = 250
@@ -45,7 +43,7 @@ class MainGame(arcade.Window):
 
             # starts cam stream
             try:
-                self.tello.streamon();
+                self.tello.streamon()
                 self.img = self.get_image()
             except Exception as c:
                 self.LOGGER.error(c)
@@ -53,7 +51,7 @@ class MainGame(arcade.Window):
 
         except Exception as d:
             self.LOGGER.error(d)
-            self.isDroneOn = False;
+            self.isDroneOn = False
             self.isCamOn = False
 
     # Creating on_draw() function to draw on the screen
@@ -86,11 +84,11 @@ class MainGame(arcade.Window):
             self.LOGGER.info('x : {}, y : {}'.format(self.vel_x, self.vel_y))
             if self.isDroneOn:
                 try:
-                    self.tello.send_rc_control(self.vel_x, self.vel_y)
+                    self.tello.send_rc_control(self.vel_x, self.vel_y, 0, 0)
                 except Exception as d:
                     self.LOGGER.error(d)
                     self.LOGGER.warning("Drone not able to get direction command")
-                    self.isDroneOn = False;
+                    self.isDroneOn = False
                     self.isCamOn = False
             else:
                 self.LOGGER.warning("Drone not available for direction command")
@@ -101,7 +99,7 @@ class MainGame(arcade.Window):
     def get_image(self):
         return cv2.resize(self.tello.get_frame_read().frame, (360, 240)) if self.isCamOn else None
 
-    def takeOff(self):
+    def take_off(self):
         if self.isDroneOn:
             self.LOGGER.info("Drone taking off...")
             try:
@@ -110,7 +108,7 @@ class MainGame(arcade.Window):
             except Exception as d:
                 self.LOGGER.error(d)
                 self.LOGGER.warning("Drone failed to take off")
-                self.isDroneOn = False;
+                self.isDroneOn = False
                 self.isCamOn = False
         else:
             self.LOGGER.warning("Drone not available for take off")
@@ -124,7 +122,7 @@ class MainGame(arcade.Window):
             except Exception as d:
                 self.LOGGER.error(d)
                 self.LOGGER.warning("Drone failed to land")
-                self.isDroneOn = False;
+                self.isDroneOn = False
                 self.isCamOn = False
         else:
             self.LOGGER.warning("Drone not available for landing")
@@ -148,7 +146,7 @@ class MainGame(arcade.Window):
             self.vel_x += 10
             self.LOGGER.info("Right arrow key is pressed")
         elif symbol == arcade.key.SPACE:
-            self.takeOff()
+            self.take_off()
         elif symbol == arcade.key.RETURN:
             self.land()
 
