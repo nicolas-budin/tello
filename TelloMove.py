@@ -1,6 +1,7 @@
 # Importing arcade module
 import arcade
 from djitellopy import Tello
+import cv2
 
 # Creating MainGame class
 class MainGame(arcade.Window):
@@ -11,31 +12,39 @@ class MainGame(arcade.Window):
         self.x = 250
         self.y = 250
 
-        # Initializing a variable to store
-        # the velocity of the player
+        # Initializing a variable to store the velocity of the player
         self.vel_x = 0
         self.vel_y = 0
 
+        # connects to drone
         self.tello = Tello()
-
         self.tello.connect()
         print(self.tello.get_battery())
 
+        # starts cam stream
+        self.tello.streamon();
+        self.img = self.get_image()
 
     # Creating on_draw() function to draw on the screen
     def on_draw(self):
         arcade.start_render()
 
-        # Drawing the rectangle using
-        # draw_rectangle_filled function
-        arcade.draw_circle_filled(self.x, self.y, 25,
-                                  arcade.color.GREEN)
+        # Drawing the rectangle using draw_rectangle_filled function
+        arcade.draw_circle_filled(self.x, self.y, 25, arcade.color.GREEN)
+
+        # update img
+        cv2.imshow("Image", self.img)
 
     # Creating on_update function to
     # update the x coordinate
     def on_update(self, delta_time):
         self.x += self.vel_x * delta_time
         self.y += self.vel_y * delta_time
+
+        self.img = self.get_image()
+
+    def get_image(self):
+        return cv2.resize(self.tello.get_frame_read().frame, (360, 240))
 
     # Creating function to change the velocity
     # when button is pressed
@@ -56,9 +65,15 @@ class MainGame(arcade.Window):
             self.vel_x = 300
             print("Right arrow key is pressed")
         elif symbol == arcade.key.SPACE:
-            print("Space key is pressed")
+            print("Drone taking off...")
+            self.tello.takeoff()
+            print("Drone took off")
         elif symbol == arcade.key.RETURN:
-            print("Return key is pressed")
+            print("Drone landing...")
+            self.tello.land()
+            self.tello.land()
+            print("Drone landed")
+
 
 
     def on_key_release(self, symbol, modifier):
