@@ -40,19 +40,21 @@ class MainGame(arcade.Window):
         self.tello = Tello()
         self.connect()
 
-# -------------------------------------------------------------------------------------------------------------------
-# controls drone
-# -------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------------------------
+    # controls drone
+    # -------------------------------------------------------------------------------------------------------------------
 
     def connect(self):
         try:
             self.tello.connect()
             self.LOGGER.info('Battery % {}'.format(self.tello.get_battery()))
+            self.isDroneOn = True;
 
             # starts cam stream
             try:
                 self.tello.streamon()
                 self.img = self.get_image()
+                self.isCamOn = True
             except Exception as c:
                 self.LOGGER.error(c)
                 self.isCamOn = False
@@ -61,7 +63,6 @@ class MainGame(arcade.Window):
             self.LOGGER.error(d)
             self.isDroneOn = False
             self.isCamOn = False
-
 
     def take_off(self):
         if self.isDroneOn:
@@ -91,14 +92,13 @@ class MainGame(arcade.Window):
         else:
             self.LOGGER.warning("Drone not available for landing")
 
-
     # gets a drone cam frame
     def get_image(self):
         return cv2.resize(self.tello.get_frame_read().frame, (360, 240)) if self.isCamOn else None
 
-# -------------------------------------------------------------------------------------------------------------------
-# overrides UI commands
-# -------------------------------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------------------------
+    # overrides UI commands
+    # -------------------------------------------------------------------------------------------------------------------
 
     # Overrides on_draw() function to draw on the screen
     def on_draw(self):
@@ -115,26 +115,34 @@ class MainGame(arcade.Window):
     # overrides on_update
     def on_update(self, delta_time):
 
-        # display
-        self.x = 300 + self.vel_x * 10
-        self.y = 300 + self.vel_y * 10
+        uiCenter = 300
 
-        # drone
-        if (self.vel_x != self.vel_prev_x) or (self.vel_y != self.vel_prev_y):
+        if self.isDroneOn:
 
-            self.vel_prev_x = self.vel_x
-            self.vel_prev_y = self.vel_y
+            # display
+            self.x = uiCenter + self.vel_x
+            self.y = uiCenter + self.vel_y
 
             # drone
-            self.LOGGER.info('x : {}, y : {}'.format(self.vel_x, self.vel_y))
-            if self.isDroneOn:
+            if (self.vel_x != self.vel_prev_x) or (self.vel_y != self.vel_prev_y):
+
+                # drone
+                self.LOGGER.info('x : {}, y : {}'.format(self.vel_x, self.vel_y))
+
                 try:
+
+                    # sends command
                     self.tello.send_rc_control(self.vel_x, self.vel_y, 0, 0)
+
+                    # updates drone last values to current values
+                    self.vel_prev_x = self.vel_x
+                    self.vel_prev_y = self.vel_y
+
                 except Exception as d:
 
                     # resets display
-                    self.x = 300 + self.vel_prev_x * 10
-                    self.y = 300 + self.vel_prev_y * 10
+                    self.x = uiCenter + self.vel_prev_x
+                    self.y = uiCenter + self.vel_prev_y
 
                     # resets the drone coordinates
                     self.vel_x = self.vel_prev_x
@@ -146,30 +154,31 @@ class MainGame(arcade.Window):
 
                     self.land()
 
-            else:
-                self.LOGGER.warning("Drone not available for direction command")
-
-        # images
-        self.img = self.get_image()
-
+            # images
+            self.img = self.get_image()
 
     #  handles keyboard events
     def on_key_press(self, symbol, modifier):
 
+        maxValue = 50
+
         # Checking the button pressed
         # and changing the value of velocity
-        if symbol == arcade.key.UP:
-            self.vel_y += 10
+
+        if symbol == arcade.key.UP and self.vel_y < maxValue:
+            self.vel_y += 50
             self.LOGGER.info("Up arrow key is pressed")
-        elif symbol == arcade.key.DOWN:
-            self.vel_y -= 10
+        elif symbol == arcade.key.DOWN and self.vel_y > -maxValue:
+            self.vel_y -= 50
             self.LOGGER.info("Down arrow key is pressed")
-        elif symbol == arcade.key.LEFT:
-            self.vel_x -= 10
-            self.LOGGER.info("Left arrow key is pressed")
-        elif symbol == arcade.key.RIGHT:
-            self.vel_x += 10
+
+        elif symbol == arcade.key.RIGHT and self.vel_x < maxValue:
+            self.vel_x += 50
             self.LOGGER.info("Right arrow key is pressed")
+        elif symbol == arcade.key.LEFT and self.vel_x > -maxValue:
+            self.vel_x -= 50
+            self.LOGGER.info("Left arrow key is pressed")
+
         elif symbol == arcade.key.SPACE:
             self.take_off()
         elif symbol == arcade.key.RETURN:
