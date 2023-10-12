@@ -5,9 +5,12 @@ import arcade
 from djitellopy import Tello
 import cv2
 
+from threading import Thread
+
+
 
 # Creating MainGame class
-class MainGame(arcade.Window):
+class TelloDrone(arcade.Window):
     HANDLER = logging.StreamHandler()
     FORMATTER = logging.Formatter('[%(levelname)s] %(filename)s - %(lineno)d - %(message)s')
     HANDLER.setFormatter(FORMATTER)
@@ -36,13 +39,15 @@ class MainGame(arcade.Window):
         self.vel_prev_x = 0
         self.vel_prev_y = 0
 
-        # connects to drone
-        self.tello = Tello()
-        self.connect()
-
     # -------------------------------------------------------------------------------------------------------------------
     # controls drone
     # -------------------------------------------------------------------------------------------------------------------
+
+    def startDrone(self):
+        # connects to drone
+        self.tello = Tello()
+        t1 = Thread(target=self.connect)
+        t1.start()
 
     def connect(self):
         try:
@@ -191,5 +196,7 @@ class MainGame(arcade.Window):
 
 
 # Calling MainGame class
-MainGame()
+tello = TelloDrone()
+tello.startDrone()
 arcade.run()
+
