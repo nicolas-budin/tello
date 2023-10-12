@@ -20,7 +20,10 @@ class TelloDrone(arcade.Window):
     LOGGER.setLevel(logging.INFO)
 
     def __init__(self):
+
         super().__init__(600, 600, title="Drone Movement")
+
+        arcade.set_background_color(arcade.color.BLACK)
 
         # status of the cam
         self.isCamOn = False
@@ -53,6 +56,7 @@ class TelloDrone(arcade.Window):
         try:
             self.tello.connect()
             self.LOGGER.info('Battery % {}'.format(self.tello.get_battery()))
+            self.stabilize()
             self.isDroneOn = True;
 
             # starts cam stream
@@ -75,6 +79,8 @@ class TelloDrone(arcade.Window):
             try:
                 self.tello.takeoff()
                 self.LOGGER.info("Drone took off")
+                self.stabilize()
+
             except Exception as d:
                 self.LOGGER.error(d)
                 self.LOGGER.warning("Drone failed to take off")
@@ -82,6 +88,9 @@ class TelloDrone(arcade.Window):
                 self.isCamOn = False
         else:
             self.LOGGER.warning("Drone not available for take off")
+
+    def stabilize(self):
+        self.tello.send_rc_control(0, 0, 0, 0)
 
     def land(self):
         if self.isDroneOn:
@@ -165,29 +174,32 @@ class TelloDrone(arcade.Window):
     #  handles keyboard events
     def on_key_press(self, symbol, modifier):
 
-        maxValue = 50
+        maxValue = 99
+        increments = 3;
 
         # Checking the button pressed
         # and changing the value of velocity
 
         if symbol == arcade.key.UP and self.vel_y < maxValue:
-            self.vel_y += 50
+            self.vel_y += (maxValue/increments)
             self.LOGGER.info("Up arrow key is pressed")
         elif symbol == arcade.key.DOWN and self.vel_y > -maxValue:
-            self.vel_y -= 50
+            self.vel_y -= (maxValue/increments)
             self.LOGGER.info("Down arrow key is pressed")
 
         elif symbol == arcade.key.RIGHT and self.vel_x < maxValue:
-            self.vel_x += 50
+            self.vel_x += (maxValue/increments)
             self.LOGGER.info("Right arrow key is pressed")
         elif symbol == arcade.key.LEFT and self.vel_x > -maxValue:
-            self.vel_x -= 50
+            self.vel_x -= (maxValue/increments)
             self.LOGGER.info("Left arrow key is pressed")
 
         elif symbol == arcade.key.SPACE:
             self.take_off()
         elif symbol == arcade.key.RETURN:
             self.land()
+            self.tello.streamoff();
+            self.tello.end()
 
 
 # -------------------------------------------------------------------------------------------------------------------
