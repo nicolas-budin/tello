@@ -181,17 +181,17 @@ class TelloDrone(arcade.Window):
         # and changing the value of velocity
 
         if symbol == arcade.key.UP and self.vel_y < maxValue:
-            self.vel_y += (maxValue/increments)
+            self.vel_y += int(maxValue/increments)
             self.LOGGER.info("Up arrow key is pressed")
         elif symbol == arcade.key.DOWN and self.vel_y > -maxValue:
-            self.vel_y -= (maxValue/increments)
+            self.vel_y -= int(maxValue/increments)
             self.LOGGER.info("Down arrow key is pressed")
 
         elif symbol == arcade.key.RIGHT and self.vel_x < maxValue:
-            self.vel_x += (maxValue/increments)
+            self.vel_x += int(maxValue/increments)
             self.LOGGER.info("Right arrow key is pressed")
         elif symbol == arcade.key.LEFT and self.vel_x > -maxValue:
-            self.vel_x -= (maxValue/increments)
+            self.vel_x -= int(maxValue/increments)
             self.LOGGER.info("Left arrow key is pressed")
 
         elif symbol == arcade.key.SPACE:
